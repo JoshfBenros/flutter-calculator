@@ -60,10 +60,11 @@ class _MyHomePageState extends State<MyHomePage> {
   String _accumulator = '';
 
   final List<String> _buttons = [
-    '7', '8', '9', '/',
-    '4', '5', '6', '*',
-    '1', '2', '3', '-',
-    'C', '0', '=', '+',
+  '7', '8', '9', '/',
+  '4', '5', '6', '*',
+  '1', '2', '3', '-',
+  'C', '0', '=', '+',
+  'x²',
   ];
 
   void _onButtonPressed(String value) {
@@ -72,6 +73,38 @@ class _MyHomePageState extends State<MyHomePage> {
         _expression = '';
         _result = '';
         _accumulator = '';
+      } else if (value == 'x²') {
+        // Square the current expression/result
+        try {
+          if (_expression.isEmpty) return;
+          final exp = Expression.parse(_expression);
+          final evaluator = const ExpressionEvaluator();
+          final evalResult = evaluator.eval(exp, {});
+          num? n;
+          if (evalResult is int) {
+            n = evalResult;
+          } else if (evalResult is double) {
+            if (evalResult.isInfinite || evalResult.isNaN) {
+              n = null;
+            } else {
+              n = evalResult;
+            }
+          }
+          if (n == null) {
+            _result = 'Undefined';
+            _accumulator = '($_expression)² = Undefined';
+            _expression = '';
+          } else {
+            final squared = n * n;
+            _result = squared.toString();
+            _accumulator = '($_expression)² = $_result';
+            _expression = _result;
+          }
+        } catch (e) {
+          _result = 'Undefined';
+          _accumulator = '($_expression)² = Undefined';
+          _expression = '';
+        }
       } else if (value == '=') {
         try {
           final exp = Expression.parse(_expression);
@@ -160,7 +193,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       btnColor = Colors.red[700]!;
                     } else if (btn == '=') {
                       btnColor = Colors.green[700]!;
-                    } else if (_isOperator(btn)) {
+                    } else if (_isOperator(btn) || btn == 'x²') {
                       btnColor = Colors.orange[700]!;
                     }
                     return ElevatedButton(
